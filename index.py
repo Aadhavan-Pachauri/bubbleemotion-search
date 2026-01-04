@@ -483,20 +483,28 @@ def startup():
     
     logger.info("🌐 Starting Flask server on http://127.0.0.1:5001")
 
+# --- KEEP ALL YOUR 500 LINES OF CODE ABOVE THIS ---
+
 if __name__ == '__main__':
+    # Initialize your background loading
     startup()
     
-    # Get port from environment variable (for Koyeb) or use default
+    # KOYEB/SERVER FIXES:
+    # 1. We must bind to 0.0.0.0 so the internet can reach the container
+    # 2. We must use the dynamic PORT assigned by Koyeb
     port = int(os.environ.get('PORT', 5001))
-    host = '0.0.0.0' if os.environ.get('KOYEB_DEPLOYMENT') else '127.0.0.1'
+    host = '0.0.0.0' # Mandatory for Koyeb
+    
+    logger.info(f"🌐 Bubble AI Server starting on {host}:{port}")
     
     try:
         app.run(
             host=host, 
             port=port, 
-            debug=not os.environ.get('KOYEB_DEPLOYMENT'),
+            # We turn off debug on the server to prevent the double-start bug
+            debug=False, 
             threaded=True,
-            use_reloader=False  # Disable reloader to prevent double loading
+            use_reloader=False 
         )
     except KeyboardInterrupt:
         logger.info("\n👋 Shutting down gracefully...")
