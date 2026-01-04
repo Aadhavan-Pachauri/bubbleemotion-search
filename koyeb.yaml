@@ -1,0 +1,125 @@
+name: ai-search-engine
+regions:
+  - was
+  - fra
+  - sin
+  - par
+  - lon
+  - oregon
+  - nyc
+  - tokyo
+  - sydney
+  - saopaulo
+  - mumbai
+  - sweden
+instance_types:
+  - free
+  - nano
+  - micro
+  - small
+  - medium
+  - large
+  - xl
+  - 2xl
+  - 3xl
+  - 4xl
+  - 5xl
+  - 6xl
+  - 7xl
+  - 8xl
+  - 9xl
+  - 10xl
+  - 11xl
+  - 12xl
+  - 13xl
+  - 14xl
+  - 15xl
+  - 16xl
+  - 17xl
+  - 18xl
+  - 19xl
+  - 20xl
+  - 21xl
+  - 22xl
+  - 23xl
+  - 24xl
+  - 25xl
+  - 26xl
+  - 27xl
+  - 28xl
+  - 29xl
+  - 30xl
+  - 31xl
+  - 32xl
+  - 33xl
+  - 34xl
+  - 35xl
+  - 36xl
+  - 37xl
+  - 38xl
+  - 39xl
+  - 40xl
+  - 41xl
+  - 42xl
+  - 43xl
+  - 44xl
+  - 45xl
+  - 46xl
+  - 47xl
+  - 48xl
+  - 49xl
+  - 50xl
+environment:
+  - name: PORT
+    value: "5001"
+  - name: FLASK_ENV
+    value: "production"
+  - name: PYTHONUNBUFFERED
+    value: "1"
+  - name: KOYEB_DEPLOYMENT
+    value: "true"
+routes:
+  - path: /
+    port: 5001
+    name: ai-search-engine
+  - path: /search
+    port: 5001
+    name: search-api
+  - path: /classify
+    port: 5001
+    name: classify-api
+  - path: /execute
+    port: 5001
+    name: execute-api
+  - path: /status
+    port: 5001
+    name: status-api
+  - path: /health
+    port: 5001
+    name: health-api
+  - path: /test
+    port: 5001
+    name: test-ui
+  - path: /api/docs
+    port: 5001
+    name: api-docs
+scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 70
+  target_memory_utilization: 80
+health_checks:
+  - grace_period: 30
+    interval: 30
+    restart_limit: 3
+    timeout: 10
+    http_path: /health
+    http_port: 5001
+    name: health-check
+docker:
+  dockerfile: Dockerfile
+  entrypoint: python
+  command: index.py
+ports:
+  - port: 5001
+    name: http

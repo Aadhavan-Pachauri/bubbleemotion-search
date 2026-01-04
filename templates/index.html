@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Search Scraper Test</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #202124;
+        --muted: #5f6368;
+        --link: #1a73e8;
+        --border: #dadce0;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .container {
+        max-width: 800px;
+        margin: 8vh auto 0;
+        padding: 0 16px;
+        text-align: center;
+      }
+      .logo {
+        font-size: 64px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .logo span:nth-child(1) { color: #4285f4; }
+      .logo span:nth-child(2) { color: #ea4335; }
+      .logo span:nth-child(3) { color: #fbbc05; }
+      .logo span:nth-child(4) { color: #4285f4; }
+      .logo span:nth-child(5) { color: #34a853; }
+      .logo span:nth-child(6) { color: #ea4335; }
+
+      .search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 24px auto;
+        max-width: 700px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 8px 12px;
+      }
+      .search-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        padding: 10px;
+      }
+      .search-button {
+        border: none;
+        background: var(--link);
+        color: white;
+        padding: 10px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .search-button:disabled { opacity: 0.7; cursor: not-allowed; }
+
+      .status {
+        margin-top: 8px;
+        min-height: 22px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .results {
+        max-width: 800px;
+        margin: 24px auto;
+        text-align: left;
+      }
+      .result-item {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .result-title {
+        font-size: 18px;
+        margin: 0 0 6px;
+      }
+      .result-title a {
+        color: var(--link);
+        text-decoration: none;
+      }
+      .result-url {
+        font-size: 14px;
+        color: #006621;
+        margin-bottom: 6px;
+        word-break: break-all;
+      }
+      .result-snippet {
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      .footer {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo" aria-label="DuckDuckGo logo">
+        <span style="color: #de5833;">Duck</span><span style="color: #44883e;">Duck</span><span style="color: #de5833;">Go</span>
+      </div>
+
+      <form id="search-form" class="search-bar" autocomplete="off">
+        <input
+          id="query"
+          class="search-input"
+          type="text"
+          placeholder="Search DuckDuckGo"
+          required
+        />
+        <button id="search-btn" class="search-button" type="submit">Search</button>
+      </form>
+
+      <div id="status" class="status"></div>
+
+      <div id="results" class="results"></div>
+
+      <div class="footer">
+        Test API directly: <a href="http://127.0.0.1:5001/search?q=test" target="_blank" rel="noopener">/search?q=test</a>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('search-form');
+      const input = document.getElementById('query');
+      const btn = document.getElementById('search-btn');
+      const statusEl = document.getElementById('status');
+      const resultsEl = document.getElementById('results');
+
+      function setStatus(text) {
+        statusEl.textContent = text || '';
+      }
+
+      function renderResults(items) {
+        resultsEl.innerHTML = '';
+        if (!Array.isArray(items) || items.length === 0) {
+          resultsEl.innerHTML = '<div class="result-item">No results found (or scrape blocked). Try again.</div>';
+          return;
+        }
+        const frag = document.createDocumentFragment();
+        items.forEach(item => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'result-item';
+
+          const title = document.createElement('h3');
+          title.className = 'result-title';
+          const link = document.createElement('a');
+          link.href = item.url;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.textContent = item.title || item.url || 'Untitled';
+          title.appendChild(link);
+
+          const url = document.createElement('div');
+          url.className = 'result-url';
+          url.textContent = item.url || '';
+
+          const snippet = document.createElement('div');
+          snippet.className = 'result-snippet';
+          snippet.textContent = item.snippet || '';
+
+          wrapper.appendChild(title);
+          wrapper.appendChild(url);
+          wrapper.appendChild(snippet);
+          frag.appendChild(wrapper);
+        });
+        resultsEl.appendChild(frag);
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const q = input.value.trim();
+        if (!q) return;
+        setStatus('Loading…');
+        btn.disabled = true;
+        resultsEl.innerHTML = '';
+
+        try {
+          const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          renderResults(data);
+          setStatus(`Loaded ${Array.isArray(data) ? data.length : 0} result(s).`);
+        } catch (err) {
+          console.error('Fetch error', err);
+          setStatus('Error loading results. Please try again.');
+          resultsEl.innerHTML = '<div class="result-item">Request failed. Check console for details.</div>';
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

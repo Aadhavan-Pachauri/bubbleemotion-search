@@ -1,0 +1,9 @@
+Flask
+requests
+beautifulsoup4
+flask-cors
+playwright
+onnxruntime
+optimum
+transformers
+torch
